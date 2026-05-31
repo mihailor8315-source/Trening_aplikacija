@@ -3,6 +3,7 @@ import '../database_helper.dart';
 import '../models/workout.dart';
 import '../models/exercise.dart';
 import 'add_exercise_screen.dart';
+import 'edit_workout_screen.dart';
 
 class WorkoutDetailScreen extends StatefulWidget {
   final Workout workout;
@@ -14,23 +15,38 @@ class WorkoutDetailScreen extends StatefulWidget {
 }
 
 class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
+  late Workout _workout;
   List<Exercise> _exercises = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _workout = widget.workout;
     _load();
   }
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
-    final list = await DatabaseHelper.instance.getExercisesForWorkout(widget.workout.id!);
+    final list = await DatabaseHelper.instance.getExercisesForWorkout(_workout.id!);
     if (!mounted) return;
     setState(() {
       _exercises = list;
       _isLoading = false;
     });
+  }
+
+  Future<void> _openEdit() async {
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => EditWorkoutScreen(workout: _workout)),
+    );
+    if (saved == true) {
+      final updated = await DatabaseHelper.instance.getWorkout(_workout.id!);
+      if (!mounted) return;
+      if (updated != null) setState(() => _workout = updated);
+      _load();
+    }
   }
 
   Future<void> _deleteExercise(Exercise exercise) async {
@@ -86,12 +102,18 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final workout = widget.workout;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(workout.name),
+        title: Text(_workout.name),
         titleTextStyle: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Izmeni trening',
+            onPressed: _openEdit,
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,10 +130,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                   children: [
                     Icon(Icons.calendar_today_outlined, size: 15, color: cs.primary),
                     const SizedBox(width: 6),
-                    Text(_formatDate(workout.date), style: const TextStyle(fontWeight: FontWeight.w500)),
+                    Text(_formatDate(_workout.date), style: const TextStyle(fontWeight: FontWeight.w500)),
                   ],
                 ),
-                if (workout.notes != null && workout.notes!.isNotEmpty) ...[
+                if (_workout.notes != null && _workout.notes!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +142,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          workout.notes!,
+                          _workout.notes!,
                           style: TextStyle(color: cs.onSurface.withValues(alpha: 0.75)),
                         ),
                       ),
@@ -219,7 +241,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AddExerciseScreen(workoutId: workout.id!),
+              builder: (_) => AddExerciseScreen(workoutId: _workout.id!),
             ),
           );
           _load();

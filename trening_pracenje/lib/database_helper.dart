@@ -72,6 +72,11 @@ class DatabaseHelper {
     return Workout.fromMap(result.first);
   }
 
+  Future<int> updateWorkout(Workout workout) async {
+    final db = await database;
+    return await db.update('workouts', workout.toMap(), where: 'id = ?', whereArgs: [workout.id]);
+  }
+
   Future<int> deleteWorkout(int id) async {
     final db = await database;
     return await db.delete('workouts', where: 'id = ?', whereArgs: [id]);
@@ -106,6 +111,11 @@ class DatabaseHelper {
   Future<int> deleteExercise(int id) async {
     final db = await database;
     return await db.delete('exercises', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteExercisesForWorkout(int workoutId) async {
+    final db = await database;
+    return await db.delete('exercises', where: 'workoutId = ?', whereArgs: [workoutId]);
   }
 
   // ─── NAPREDAK ────────────────────────────────────────────
