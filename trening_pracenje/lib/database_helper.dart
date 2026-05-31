@@ -65,6 +65,16 @@ class DatabaseHelper {
     return result.map(Workout.fromMap).toList();
   }
 
+  Future<Map<int, int>> getAllExerciseCounts() async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT workoutId, COUNT(*) as count
+      FROM exercises
+      GROUP BY workoutId
+    ''');
+    return {for (final r in result) r['workoutId'] as int: r['count'] as int};
+  }
+
   Future<Workout?> getWorkout(int id) async {
     final db = await database;
     final result = await db.query('workouts', where: 'id = ?', whereArgs: [id]);

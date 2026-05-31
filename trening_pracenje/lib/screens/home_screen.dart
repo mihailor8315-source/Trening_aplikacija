@@ -25,16 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
-    final workouts = await DatabaseHelper.instance.getAllWorkouts();
-    final counts = <int, int>{};
-    for (final w in workouts) {
-      counts[w.id!] = await DatabaseHelper.instance.getExerciseCount(w.id!);
-    }
+    final results = await Future.wait([
+      DatabaseHelper.instance.getAllWorkouts(),
+      DatabaseHelper.instance.getAllExerciseCounts(),
+    ]);
     if (!mounted) return;
     setState(() {
-      _workouts = workouts;
-      _exerciseCounts.clear();
-      _exerciseCounts.addAll(counts);
+      _workouts = results[0] as List<Workout>;
+      _exerciseCounts
+        ..clear()
+        ..addAll(results[1] as Map<int, int>);
       _isLoading = false;
     });
   }
