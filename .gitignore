@@ -1,0 +1,29 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.g.dart
+
+# Android
+trening_pracenje/android/.gradle/
+trening_pracenje/android/local.properties
+trening_pracenje/android/key.properties
+trening_pracenje/android/app/debug.keystore
+
+# iOS
+trening_pracenje/ios/.symlinks/
+trening_pracenje/ios/Pods/
+trening_pracenje/ios/Runner.xcworkspace/xcshareddata/
+trening_pracenje/ios/Flutter/flutter_export_environment.sh
+trening_pracenje/ios/Flutter/Generated.xcconfig
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
