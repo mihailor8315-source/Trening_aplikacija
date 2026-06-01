@@ -87,6 +87,29 @@ class DatabaseHelper {
     return await db.update('workouts', workout.toMap(), where: 'id = ?', whereArgs: [workout.id]);
   }
 
+  Future<void> updateWorkoutWithExercises(
+    Workout workout,
+    List<Exercise> exercises,
+  ) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.update(
+        'workouts',
+        workout.toMap(),
+        where: 'id = ?',
+        whereArgs: [workout.id],
+      );
+      await txn.delete(
+        'exercises',
+        where: 'workoutId = ?',
+        whereArgs: [workout.id],
+      );
+      for (final ex in exercises) {
+        await txn.insert('exercises', ex.toMap());
+      }
+    });
+  }
+
   Future<int> deleteWorkout(int id) async {
     final db = await database;
     return await db.delete('workouts', where: 'id = ?', whereArgs: [id]);

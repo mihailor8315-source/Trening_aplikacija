@@ -151,22 +151,34 @@ class _EditWorkoutScreenState extends State<EditWorkoutScreen> {
       id: widget.workout.id,
       name: _nameController.text.trim(),
       date: _selectedDate,
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
     );
 
-    await DatabaseHelper.instance.updateWorkout(updated);
-    await DatabaseHelper.instance.deleteExercisesForWorkout(widget.workout.id!);
-    for (final ex in _exercises) {
-      await DatabaseHelper.instance.insertExercise(Exercise(
-        workoutId: widget.workout.id!,
-        name: ex.name,
-        sets: ex.sets,
-        reps: ex.reps,
-        weight: ex.weight,
-      ));
-    }
+    final exercises = _exercises
+        .map((ex) => Exercise(
+              workoutId: widget.workout.id!,
+              name: ex.name,
+              sets: ex.sets,
+              reps: ex.reps,
+              weight: ex.weight,
+            ))
+        .toList();
 
-    if (mounted) Navigator.pop(context, true);
+    try {
+      await DatabaseHelper.instance
+          .updateWorkoutWithExercises(updated, exercises);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Greška pri čuvanju izmena. Pokušaj ponovo.'),
+        ),
+      );
+    }
   }
 
   String _formatDate(DateTime d) {
